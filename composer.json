@@ -1,0 +1,42 @@
+{
+    "name": "uluru/payment-service-php-client",
+    "description": "Payment service client library for PHP language.",
+    "type": "library",
+    "require": {
+        "php": ">=5.4",
+        "guzzlehttp/guzzle": ">=6.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=5.2.0",
+        "squizlabs/php_codesniffer": "@stable",
+        "phpmd/phpmd": "@stable"
+    },
+    "autoload": {
+        "psr-4": { "PaymentService\\" : "src/" }
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aridoss MAHESVARAN",
+            "email": "a_mahesvaran@uluru.jp"
+        }
+    ],
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    },
+    "autoload-dev": {
+        "classmap": [
+            "tests/TestCase.php"
+        ]
+    },
+    "scripts": {
+        "test": [
+            "php vendor/bin/phpcs --standard=phpcs.xml src/",
+            "php vendor/bin/phpunit"
+        ]
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
