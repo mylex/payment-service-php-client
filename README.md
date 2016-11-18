@@ -2,7 +2,7 @@
 
 ## Installation
 ```bash
-composer require mahesvaran/payment-service-php dev-master
+composer require uluru/payment-service-php-client dev-master
 ```
 
 ## Setup
@@ -12,23 +12,15 @@ include 'vendor/autoload.php';
 ```
 ### Configure the API credentials
 ```php
-$token = "59d3cf3e698ca05b600a6cbc753939464be9cddb";
+$token = "your-api-token";
 $endpoint = "http://payment-service.dev/api";
-\PaymentService\ApiClient::config($token, $endpoint);
+\PaymentService\Client::config($token, $endpoint);
 ```
 
 ## Bank Resource
 ### Select All
 ```php
 \PaymentService\Bank::all();
-```
-Result would be
-```json
-
-```
-### Select single resource
-```php
-\PaymentService\Bank::get(2);
 ```
 Result would be
 ```php
@@ -72,6 +64,39 @@ Collection {#186 ▼
     12 => Bank {#176 ▶}
     13 => Bank {#175 ▶}
     14 => Bank {#191 ▶}
+  ]
+}
+```
+### Select single resource
+```php
+\PaymentService\Bank::get(2);
+```
+Result would be
+```php
+Bank {#169 ▼
+  #fillable: array:9 [▶]
+  #queryParams: array:1 [▼
+    0 => "user_id"
+  ]
+  #primaryKey: "id"
+  #keyType: "int"
+  #attributes: array:15 [▶]
+  #original: array:15 [▼
+    "client_id" => 1
+    "user_id" => 137144
+    "bank_code" => "123"
+    "bank_name" => "OuDYHq4U78gjRyjq"
+    "branch_name" => "W9g1HRzLs13GPDoJ"
+    "branch_code" => "456"
+    "account_type" => 1
+    "account_no" => "7130959"
+    "account_name" => "m294WemSNcALS2je"
+    "bank_type" => 1
+    "japanpost_code_no" => null
+    "japanpost_account_no" => null
+    "created" => "2016-11-17 13:53:00"
+    "modified" => "2016-11-17 13:53:00"
+    "id" => "10"
   ]
 }
 ```
