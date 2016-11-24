@@ -20,6 +20,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     protected $original = [];
     protected $fillable = [];
     protected $queryParams = [];
+    private $exists = false;
 
     public function __construct(array $attributes = [])
     {
@@ -31,7 +32,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $newlist = [];
         foreach ($list as $key => $value) {
             $newlist[] = array_merge([
-                    $this->getKeyName() => $this->getKey()
+                    $this->getKeyName() => $value[$this->getKeyName()]
                 ],
                 $value['attributes']
             );
@@ -88,7 +89,16 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     public static function create(array $attributes = [])
     {
         $resource = new static($attributes);
-        return $resource->save([], 'post');
+        $method='post';
+        $url = $resource->getCollectionUrl();
+        $params = $resource->wrapData($resource->getAttributes());
+        $requestor =  $resource->requestor();
+        $data =  $requestor->request($method, $url, $params, []);
+        $item = $data->json['attributes'];
+        $item[$resource->getKeyName()] = $data->json[$resource->getKeyName()];
+        $instance = $resource->newFromApi($item);
+        $instance->exists = true;
+        return $instance;
     }
 
     public static function all($params = [])
@@ -138,9 +148,8 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     public function newFromApi($attributes = [], $connection = null)
     {
         $resource = $this->newInstance([], true);
-
         $resource->setRawAttributes((array) $attributes, true);
-
+        $resource->exists = true;
         return $resource;
     }
 
@@ -187,15 +196,9 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
 
     public function save(array $options = [])
     {
-        if  ($this->id) {
-            $method='patch';
-            $url = $this->getInstanceUrl($this->id);
-            $params = $this->wrapData($this->getAttributes(), true);
-        } else {
-            $method='post';
-            $url = $this->getCollectionUrl();
-            $params = $this->wrapData($this->getAttributes());
-        }
+        $method='patch';
+        $url = $this->getInstanceUrl($this->id);
+        $params = $this->wrapData($this->getAttributes(), true);
         $requestor =  $this->requestor();
         $data =  $requestor->request($method, $url, $params, []);
         $item = $data->json['attributes'];

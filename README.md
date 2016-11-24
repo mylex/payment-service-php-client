@@ -1,11 +1,13 @@
 # PHP client library for Payment Service API
 
 ## Installation
+
 ```bash
-composer require uluru/payment-service-php-client dev-master
+composer require uluru/payment-service-php-client
 ```
 
 ## Setup
+
 ### Include the library file
 ```php
 include 'vendor/autoload.php';
@@ -18,7 +20,9 @@ $endpoint = "http://payment-service.dev/api";
 ```
 
 ## Bank Resource
+
 ### Select All
+
 ```php
 \PaymentService\Bank::all();
 ```
@@ -67,11 +71,15 @@ Collection {#186 ▼
   ]
 }
 ```
+
 ### Select single resource
+
 ```php
 \PaymentService\Bank::get(2);
 ```
+
 Result would be
+
 ```php
 Bank {#169 ▼
   #fillable: array:9 [▶]
@@ -100,7 +108,9 @@ Bank {#169 ▼
   ]
 }
 ```
+
 ### Create new resource
+
 ```php
 \PaymentService\Bank::create([
     'user_id' => 1234,
@@ -114,7 +124,9 @@ Bank {#169 ▼
     'bank_type' => 1
 ]);
 ```
+
 Result would be
+
 ```php
 Bank {#168 ▼
   #fillable: array:9 [▶]
