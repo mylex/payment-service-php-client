@@ -20,6 +20,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     protected $original = [];
     protected $fillable = [];
     protected $queryParams = [];
+    protected $includeParams = [];
     private $exists = false;
 
     public function __construct(array $attributes = [])
@@ -27,7 +28,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $this->fill($attributes);
     }
 
-    public function listFill(array $list)
+    protected function listFill(array $list)
     {
         $newlist = [];
         foreach ($list as $key => $value) {
@@ -59,6 +60,11 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
             if ($this->isQueryable($key)) {
                 $filtered[$key] = $value;
             }
+            // TODO: Accept multiple includes
+            // Now can only include single relationship
+            if ($key == 'include' && $this->isIncludable($value)) {
+                $filtered[$key] = $value;
+            }
         }
         return $filtered;
     }
@@ -68,7 +74,6 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         if (count($this->getFillable()) > 0) {
             return array_intersect_key($attributes, array_flip($this->getFillable()));
         }
-
         return $attributes;
     }
 
@@ -94,8 +99,8 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $params = $resource->wrapData($resource->getAttributes());
         $requestor =  $resource->requestor();
         $data =  $requestor->request($method, $url, $params, []);
-        $item = $data->json['attributes'];
-        $item[$resource->getKeyName()] = $data->json[$resource->getKeyName()];
+        $item = $data->json['data']['attributes'];
+        $item[$resource->getKeyName()] = $data->json['data'][$resource->getKeyName()];
         $instance = $resource->newFromApi($item);
         $instance->exists = true;
         return $instance;
@@ -109,19 +114,24 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $url = $instance->getCollectionUrl();
         $params = $instance->filterParams($params);
         $data =  $requestor->request('get', $url, $params, []);
-        $data = $instance->listFill($data->json);
+        $data = $instance->listFill($data->json['data']);
         return $data;
     }
 
-    public static function get($id)
+    public static function get($id, $params = [])
     {
         $instance = new static();
         $requestor =  $instance->requestor();
         $url = $instance->getInstanceUrl($id);
-        $data =  $requestor->request('get', $url, [], []);
-        $item = $data->json['attributes'];
-        $item[$instance->getKeyName()] = $data->json[$instance->getKeyName()];
-        return $instance->newFromApi($item);
+        $params = $instance->filterParams($params);
+        $data =  $requestor->request('get', $url, $params, []);
+        $item = $data->json['data']['attributes'];
+        $item[$instance->getKeyName()] = $data->json['data'][$instance->getKeyName()];
+        $instance = $instance->newFromApi($item);
+        if (isset($data->json['included'])) {
+            $instance->setIncludes($data->json['included']);
+        }
+        return $instance;
     }
 
     public function getInstanceUrl($id, $parentId = null)
@@ -201,8 +211,8 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $params = $this->wrapData($this->getAttributes(), true);
         $requestor =  $this->requestor();
         $data =  $requestor->request($method, $url, $params, []);
-        $item = $data->json['attributes'];
-        $item[$this->getKeyName()] = $data->json[$this->getKeyName()];
+        $item = $data->json['data']['attributes'];
+        $item[$this->getKeyName()] = $data->json['data'][$this->getKeyName()];
         return $this->newFromApi($item);
     }
 
@@ -272,6 +282,25 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     public function isQueryable($key)
     {
         if (in_array($key, $this->getQueryParams())) {
+            return true;
+        }
+        return false;
+    }
+
+    public function getIncludeParams()
+    {
+        return $this->includeParams;
+    }
+
+    public function includeParams(array $includeParams)
+    {
+        $this->includeParams = $includeParams;
+        return $this;
+    }
+
+    public function isIncludable($key)
+    {
+        if (in_array($key, $this->getIncludeParams())) {
             return true;
         }
         return false;

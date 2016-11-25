@@ -6,6 +6,13 @@ use PaymentService\Base\Resource;
 
 class Withdrawal extends Resource
 {
+    const WITHDRAWAL_STATUS_PENDING  = 0;
+    const WITHDRAWAL_STATUS_PROCESSING  = 1; // new
+    const WITHDRAWAL_STATUS_PROCESSED  = 2;
+    const WITHDRAWAL_STATUS_SUCCESS = 3;
+    const WITHDRAWAL_STATUS_FAILED = 4;
+    const WITHDRAWAL_STATUS_CANCELLED = 5;
+
     protected $fillable = [
         'bank_id',
         'amount',
@@ -13,7 +20,12 @@ class Withdrawal extends Resource
     ];
 
     protected $queryParams = [
-        'bank_id'
+        'bank_id',
+        'include'
+    ];
+
+    protected $includeParams = [
+        'bank'
     ];
 
     public function getCollectionUrl($parentId = null)
@@ -40,5 +52,18 @@ class Withdrawal extends Resource
         $item = $data->json['attributes'];
         $item['id'] = $data->json['id'];
         return $this->newFromApi($item);
+    }
+
+    public function setIncludes($data)
+    {
+        if (!empty($this->includeParams)) {
+            foreach ($this->includeParams as $include) {
+                $className = "PaymentService\\" . Utils\Str::studly($include);
+                $includeObject = new $className;
+                $collection = $includeObject->listFill($data);
+                $this->{$include} = $collection[0];
+            }
+        }
+        return $this;
     }
 }

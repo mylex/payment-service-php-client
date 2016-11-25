@@ -26,7 +26,6 @@ class Request
         $this->requestRaw($method, $url, $params, $headers);
 
         $resp = json_decode($rbody, true);
-
         $json = $this->interpretResponse($rbody, $rcode, $rheaders);
         $resp = new Response($rbody, $rcode, $rheaders, $json);
         return $resp;
@@ -73,7 +72,7 @@ class Request
             if ($rcode == 204) {
                 $data = [];
             } else {
-                $data = $resp['data'];
+                $data = $resp;
             }
         } catch (\Exception $e) {
             $msg = "Invalid response body from API: $rbody "
