@@ -28,7 +28,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $this->fill($attributes);
     }
 
-    protected function listFill(array $list)
+    protected function listFill(array $list, $response = null)
     {
         $newlist = [];
         foreach ($list as $key => $value) {
@@ -38,8 +38,23 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
                 $value['attributes']
             );
         }
-        return static::hydrateRaw($newlist);
+        return static::hydrateRaw($newlist, $response);
     }
+
+    public static function hydrateRaw($items, $response = null)
+    {
+        $instance = new static;
+
+        $items = array_map(function ($item) use ($instance, $response) {
+            if ($response && isset($response->json['included'])) {
+                return $instance->newFromApi($item, $response);
+            }
+            return $instance->newFromApi($item);
+        }, $items);
+
+        return $instance->newCollection($items);
+    }
+
 
     public function fill(array $attributes)
     {
@@ -114,7 +129,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $url = $instance->getCollectionUrl();
         $params = $instance->filterParams($params);
         $data =  $requestor->request('get', $url, $params, []);
-        $data = $instance->listFill($data->json['data']);
+        $data = $instance->listFill($data->json['data'], $data);
         return $data;
     }
 
@@ -127,10 +142,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $data =  $requestor->request('get', $url, $params, []);
         $item = $data->json['data']['attributes'];
         $item[$instance->getKeyName()] = $data->json['data'][$instance->getKeyName()];
-        $instance = $instance->newFromApi($item);
-        if (isset($data->json['included'])) {
-            $instance->setIncludes($data->json['included']);
-        }
+        $instance = $instance->newFromApi($item, $data);
         return $instance;
     }
 
@@ -144,33 +156,34 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         return '/' . self::className() . 's';
     }
 
-    public static function hydrate(array $items, $connection = null)
-    {
-        $instance = new static;
-
-        $items = array_map(function ($item) use ($instance) {
-            return $instance->newFromApi($item);
-        }, $items);
-
-        return $instance->newCollection($items);
-    }
-
-    public function newFromApi($attributes = [], $connection = null)
+    public function newFromApi($attributes = [], $response = null)
     {
         $resource = $this->newInstance([], true);
         $resource->setRawAttributes((array) $attributes, true);
         $resource->exists = true;
+        if (isset($response->json['included'])) {
+            $included = $this->getIncludeObject($response->json['included'], 'id', $resource->id);
+            if ($included) {
+                $resource->setIncludes($included);
+            }
+        }
         return $resource;
+    }
+
+    public function getIncludeObject($obj, $field, $value)
+    {
+        $included = [];
+        foreach($obj as $item) {
+            if ($item[$field] == $value) {
+                $included[] = $item;
+            }
+        }
+        return $included;
     }
 
     public function newCollection(array $resources = [])
     {
         return new Collection($resources);
-    }
-
-    public static function hydrateRaw($items)
-    {
-        return static::hydrate($items, null);
     }
 
     public function requestor()
