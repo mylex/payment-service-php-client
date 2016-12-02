@@ -12,6 +12,9 @@
         "phpmd/phpmd": "@stable"
     },
     "autoload": {
+        "files": [
+            "src/Utils/helpers.php"
+        ],
         "psr-4": { "PaymentService\\" : "src/" }
     },
     "license": "MIT",
