@@ -10,6 +10,7 @@ use CachingIterator;
 use JsonSerializable;
 use IteratorAggregate;
 use InvalidArgumentException;
+use PaymentService\Utils\Arr;
 use PaymentService\Contracts\Jsonable;
 use PaymentService\Contracts\Arrayable;
 
