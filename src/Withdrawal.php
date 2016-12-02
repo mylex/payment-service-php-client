@@ -28,42 +28,6 @@ class Withdrawal extends Resource
         'bank'
     ];
 
-    public function getCollectionUrl($parentId = null)
-    {
-        if ($parentId) {
-            return '/banks/' . $parentId . '/' . self::className() . 's';
-        }
-        return '/' . self::className() . 's';
-    }
+    protected $parentResourceName = 'bank';
 
-    public function save(array $options = [])
-    {
-        if  ($this->id) {
-            $method='patch';
-            $url = $this->getInstanceUrl($this->id, $this->bank_id);
-
-        } else {
-            $method='post';
-            $url = $this->getCollectionUrl();
-        }
-        $requestor =  $this->requestor();
-        $params = $this->wrapData($this->getAttributes());
-        $data =  $requestor->request($method, $url, $params, []);
-        $item = $data->json['attributes'];
-        $item['id'] = $data->json['id'];
-        return $this->newFromApi($item);
-    }
-
-    public function setIncludes($data)
-    {
-        if (!empty($this->includeParams)) {
-            foreach ($this->includeParams as $include) {
-                $className = "PaymentService\\" . Utils\Str::studly($include);
-                $includeObject = new $className;
-                $collection = $includeObject->listFill($data);
-                $this->{$include} = $collection[0];
-            }
-        }
-        return $this;
-    }
 }

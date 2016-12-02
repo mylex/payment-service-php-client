@@ -22,6 +22,8 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     protected $queryParams = [];
     protected $includeParams = [];
     private $exists = false;
+    private $parentResourceName;
+    private $relationships = [];
 
     public function __construct(array $attributes = [])
     {
@@ -32,11 +34,17 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     {
         $newlist = [];
         foreach ($list as $key => $value) {
-            $newlist[] = array_merge([
+            $data['attributes'] = array_merge([
                     $this->getKeyName() => $value[$this->getKeyName()]
                 ],
                 $value['attributes']
             );
+            if (isset($value['relationships'])) {
+                $data['relationships'] = $value['relationships'];
+            }
+
+            $newlist[] = $data;
+            // $data['relationships']
         }
         return static::hydrateRaw($newlist, $response);
     }
@@ -46,10 +54,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $instance = new static;
 
         $items = array_map(function ($item) use ($instance, $response) {
-            if ($response && isset($response->json['included'])) {
-                return $instance->newFromApi($item, $response);
-            }
-            return $instance->newFromApi($item);
+            return $instance->newFromApi($item, $response);
         }, $items);
 
         return $instance->newCollection($items);
@@ -110,12 +115,14 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     {
         $resource = new static($attributes);
         $method='post';
-        $url = $resource->getCollectionUrl();
+        $uri = $resource->getCollectionUri();
         $params = $resource->wrapData($resource->getAttributes());
         $requestor =  $resource->requestor();
-        $data =  $requestor->request($method, $url, $params, []);
-        $item = $data->json['data']['attributes'];
-        $item[$resource->getKeyName()] = $data->json['data'][$resource->getKeyName()];
+        $data =  $requestor->request($method, $uri, $params, []);
+        $item['attributes'] = array_merge(
+            [$resource->getKeyName() => $data->json['data'][$resource->getKeyName()]],
+            $data->json['data']['attributes']
+        );
         $instance = $resource->newFromApi($item);
         $instance->exists = true;
         return $instance;
@@ -126,9 +133,9 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         $params = is_array($params) ? $params : func_get_args();
         $instance = new static;
         $requestor =  $instance->requestor();
-        $url = $instance->getCollectionUrl();
+        $uri = $instance->getCollectionUri();
         $params = $instance->filterParams($params);
-        $data =  $requestor->request('get', $url, $params, []);
+        $data =  $requestor->request('get', $uri, $params, []);
         $data = $instance->listFill($data->json['data'], $data);
         return $data;
     }
@@ -137,48 +144,84 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     {
         $instance = new static();
         $requestor =  $instance->requestor();
-        $url = $instance->getInstanceUrl($id);
+        $uri = $instance->getInstanceUri($id);
         $params = $instance->filterParams($params);
-        $data =  $requestor->request('get', $url, $params, []);
-        $item = $data->json['data']['attributes'];
-        $item[$instance->getKeyName()] = $data->json['data'][$instance->getKeyName()];
+        $data =  $requestor->request('get', $uri, $params, []);
+        $item['attributes'] = array_merge(
+            [$instance->getKeyName() => $data->json['data'][$instance->getKeyName()]],
+            $data->json['data']['attributes']
+        );
+        if (isset($data->json['data']['relationships'])) {
+            $item['relationships'] = $data->json['data']['relationships'];
+        }
         $instance = $instance->newFromApi($item, $data);
         return $instance;
     }
 
-    public function getInstanceUrl($id, $parentId = null)
+    public function getInstanceUri($id)
     {
-        return $this->getCollectionUrl($parentId) . '/' . $id;
+        return $this->getCollectionUri() . '/' . $id;
     }
 
-    public function getCollectionUrl($parentId = null)
+    public function getCollectionUri()
     {
+        if ($this->hasParentResource()) {
+            return $this->parentInstanceUri() . '/' . self::className() . 's';
+        }
         return '/' . self::className() . 's';
     }
 
-    public function newFromApi($attributes = [], $response = null)
+    protected function hasParentResource() {
+        if ($this->parentResourceName) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public function parentInstanceUri()
+    {
+        $uri = '';
+        if ($this->attributes) {
+            $parentId = $this->attributes[$this->parentResourceName . '_id'];
+            $uri = '/' . $this->parentResourceName . 's' . '/' . $parentId;
+        }
+        return $uri;
+    }
+
+    public function newFromApi($item = [], $response = null)
     {
         $resource = $this->newInstance([], true);
-        $resource->setRawAttributes((array) $attributes, true);
+        $resource->setRawAttributes((array) $item['attributes'], true);
+        if (isset($item['relationships'])) {
+            $resource->relationships = $item['relationships'];
+        }
         $resource->exists = true;
         if (isset($response->json['included'])) {
-            $included = $this->getIncludeObject($response->json['included'], 'id', $resource->id);
-            if ($included) {
-                $resource->setIncludes($included);
-            }
+            $resource->setIncludes($response->json['included']);
         }
         return $resource;
     }
 
-    public function getIncludeObject($obj, $field, $value)
+    public function setIncludes($data)
     {
-        $included = [];
-        foreach($obj as $item) {
-            if ($item[$field] == $value) {
-                $included[] = $item;
+        if (!empty($this->includeParams)) {
+            foreach ($this->includeParams as $include) {
+                $instanceData = $this->relationships[$include];
+                $className = Str::studly($include);
+                $className = '\PaymentService\\' . $className;
+                foreach ($data as $included) {
+                    $includeObject = new $className;
+                    $item['attributes'] = array_merge(
+                        [$includeObject->getKeyName() => $included[$includeObject->getKeyName()]],
+                        $included['attributes']
+                    );
+                    $includeObject = $includeObject->newFromApi($item);
+                    $this->{$include} = $includeObject;
+                }
             }
         }
-        return $included;
+        return $this;
     }
 
     public function newCollection(array $resources = [])
@@ -198,11 +241,11 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         }
 
         $method='delete';
-        $url = $this->getInstanceUrl($this->id);
+        $uri = $this->getInstanceUri($this->id);
 
         $requestor =  $this->requestor();
 
-        $response =  $requestor->request($method, $url, [], []);
+        $response =  $requestor->request($method, $uri, [], []);
         if ($response->code == 204) {
             return true;
         }
@@ -220,12 +263,16 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     public function save(array $options = [])
     {
         $method='patch';
-        $url = $this->getInstanceUrl($this->id);
+        $uri = $this->getInstanceUri($this->id);
         $params = $this->wrapData($this->getAttributes(), true);
         $requestor =  $this->requestor();
-        $data =  $requestor->request($method, $url, $params, []);
+        $data =  $requestor->request($method, $uri, $params, []);
         $item = $data->json['data']['attributes'];
         $item[$this->getKeyName()] = $data->json['data'][$this->getKeyName()];
+        $item['attributes'] = array_merge(
+            [$this->getKeyName() => $data->json['data'][$this->getKeyName()]],
+            $data->json['data']['attributes']
+        );
         return $this->newFromApi($item);
     }
 
