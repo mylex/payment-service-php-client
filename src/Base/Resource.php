@@ -22,8 +22,8 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     protected $queryParams = [];
     protected $includeParams = [];
     private $exists = false;
-    private $parentResourceName;
-    private $relationships = [];
+    protected $parentResourceName;
+    protected $relationships = [];
 
     public function __construct(array $attributes = [])
     {
