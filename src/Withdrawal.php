@@ -20,7 +20,7 @@ class Withdrawal extends Resource
     ];
 
     protected $queryParams = [
-        'bank_id',
+        'user_id',
         'include',
         'page'
     ];
