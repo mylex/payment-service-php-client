@@ -1,33 +1,8 @@
 <?php
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Debug\Dumper;
-use Illuminate\Contracts\Support\Htmlable;
-
-if (! function_exists('append_config')) {
-    /**
-     * Assign high numeric IDs to a config item to force appending.
-     *
-     * @param  array  $array
-     * @return array
-     */
-    function append_config(array $array)
-    {
-        $start = 9999;
-
-        foreach ($array as $key => $value) {
-            if (is_numeric($key)) {
-                $start++;
-
-                $array[$start] = Arr::pull($array, $key);
-            }
-        }
-
-        return $array;
-    }
-}
+use PaymentService\Utils\Arr;
+use PaymentService\Utils\Str;
+use PaymentService\Base\Collection;
 
 if (! function_exists('array_add')) {
     /**
@@ -330,42 +305,6 @@ if (! function_exists('class_basename')) {
     }
 }
 
-if (! function_exists('class_uses_recursive')) {
-    /**
-     * Returns all traits used by a class, its subclasses and trait of their traits.
-     *
-     * @param  object|string  $class
-     * @return array
-     */
-    function class_uses_recursive($class)
-    {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
-
-        $results = [];
-
-        foreach (array_merge([$class => $class], class_parents($class)) as $class) {
-            $results += trait_uses_recursive($class);
-        }
-
-        return array_unique($results);
-    }
-}
-
-if (! function_exists('collect')) {
-    /**
-     * Create a collection from the given value.
-     *
-     * @param  mixed  $value
-     * @return \Illuminate\Support\Collection
-     */
-    function collect($value = null)
-    {
-        return new Collection($value);
-    }
-}
-
 if (! function_exists('data_fill')) {
     /**
      * Fill in data where it's missing.
@@ -483,40 +422,6 @@ if (! function_exists('data_set')) {
         }
 
         return $target;
-    }
-}
-
-if (! function_exists('dd')) {
-    /**
-     * Dump the passed variables and end the script.
-     *
-     * @param  mixed
-     * @return void
-     */
-    function dd()
-    {
-        array_map(function ($x) {
-            (new Dumper)->dump($x);
-        }, func_get_args());
-
-        die(1);
-    }
-}
-
-if (! function_exists('e')) {
-    /**
-     * Escape HTML special characters in a string.
-     *
-     * @param  \Illuminate\Contracts\Support\Htmlable|string  $value
-     * @return string
-     */
-    function e($value)
-    {
-        if ($value instanceof Htmlable) {
-            return $value->toHtml();
-        }
-
-        return htmlspecialchars($value, ENT_QUOTES, 'UTF-8', false);
     }
 }
 
@@ -691,20 +596,6 @@ if (! function_exists('str_limit')) {
     }
 }
 
-if (! function_exists('str_plural')) {
-    /**
-     * Get the plural form of an English word.
-     *
-     * @param  string  $value
-     * @param  int     $count
-     * @return string
-     */
-    function str_plural($value, $count = 2)
-    {
-        return Str::plural($value, $count);
-    }
-}
-
 if (! function_exists('str_random')) {
     /**
      * Generate a more truly "random" alpha-numeric string.
@@ -765,18 +656,6 @@ if (! function_exists('str_replace_last')) {
     }
 }
 
-if (! function_exists('str_singular')) {
-    /**
-     * Get the singular form of an English word.
-     *
-     * @param  string  $value
-     * @return string
-     */
-    function str_singular($value)
-    {
-        return Str::singular($value);
-    }
-}
 
 if (! function_exists('str_slug')) {
     /**
@@ -863,18 +742,6 @@ if (! function_exists('value')) {
     function value($value)
     {
         return $value instanceof Closure ? $value() : $value;
-    }
-}
-
-if (! function_exists('windows_os')) {
-    /**
-     * Determine whether the current environment is Windows based.
-     *
-     * @return bool
-     */
-    function windows_os()
-    {
-        return strtolower(substr(PHP_OS, 0, 3)) === 'win';
     }
 }
 

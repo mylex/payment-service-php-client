@@ -21,7 +21,8 @@ class Withdrawal extends Resource
 
     protected $queryParams = [
         'bank_id',
-        'include'
+        'include',
+        'page'
     ];
 
     protected $includeParams = [

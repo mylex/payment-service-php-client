@@ -19,6 +19,7 @@ class Bank extends Resource
     ];
 
     protected $queryParams = [
-        'user_id'
+        'user_id',
+        'page'
     ];
 }

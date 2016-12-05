@@ -52,12 +52,14 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     public static function hydrateRaw($items, $response = null)
     {
         $instance = new static;
-
+        $meta = [];
         $items = array_map(function ($item) use ($instance, $response) {
             return $instance->newFromApi($item, $response);
         }, $items);
-
-        return $instance->newCollection($items);
+        if (isset($response->json['meta'])) {
+            $meta = $response->json['meta'];
+        }
+        return $instance->newCollection($items, $meta);
     }
 
 
@@ -224,9 +226,9 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         return $this;
     }
 
-    public function newCollection(array $resources = [])
+    public function newCollection(array $resources = [], $meta=[])
     {
-        return new Collection($resources);
+        return new Collection($resources, $meta);
     }
 
     public function requestor()

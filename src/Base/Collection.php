@@ -24,17 +24,23 @@ class Collection implements ArrayAccess, Arrayable, Countable, IteratorAggregate
      */
     protected $items = [];
 
+    protected $meta = [];
     /**
      * Create a new collection.
      *
      * @param  mixed  $items
      * @return void
      */
-    public function __construct($items = [])
+    public function __construct($items = [], $meta = [])
     {
         $this->items = $this->getArrayableItems($items);
+        $this->meta = $meta;
     }
 
+    public function getMeta()
+    {
+        return $this->meta;
+    }
     /**
      * Create a new collection instance if the value isn't one already.
      *
