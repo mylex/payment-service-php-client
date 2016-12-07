@@ -22,4 +22,6 @@ class Bank extends Resource
         'user_id',
         'page'
     ];
+
+    protected $hasHistory = true;
 }

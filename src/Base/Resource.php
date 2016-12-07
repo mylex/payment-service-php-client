@@ -24,6 +24,7 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
     private $exists = false;
     protected $parentResourceName;
     protected $relationships = [];
+    protected $hasHistory = false;
 
     public function __construct(array $attributes = [])
     {
@@ -158,6 +159,18 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
         }
         $instance = $instance->newFromApi($item, $data);
         return $instance;
+    }
+
+    public function history($params = [])
+    {
+        if ($this->hasHistory) {
+            $requestor =  $this->requestor();
+            $uri = $this->getInstanceUri($this->id) . '/history';
+            $params = $this->filterParams($params);
+            $data =  $requestor->request('get', $uri, $params, []);
+            return $data->json;
+        }
+        return [];
     }
 
     public function getInstanceUri($id)
