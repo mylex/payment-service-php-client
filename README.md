@@ -1,12 +1,29 @@
 # PHP client library for Payment Service API
+- [Introduction](#introduction)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+- [Usage](#usage)
+- [口座情報取得](#banks_all)
+- [口座情報登録](#banks_create)
+- [口座情報変更](#banks_update)
+- [口座情報削除](#banks_delete)
+- [口座情報更新履歴](#banks_history)
+- [出金依頼](#withdrawals_create)
+- [出金依頼ステータス変更](#withdrawals_update)
+- [振込データ取得](#withdrawals_all)
 
+<a name="introduction"></a>
+## Introduction
+
+<a name="installation"></a>
 ## Installation
 
 ```bash
 composer require uluru/payment-service-php-client
 ```
 
-## Setup
+<a name="configuration"></a>
+## Configuration
 
 ### Include the library file
 ```php
@@ -19,14 +36,15 @@ $endpoint = "http://payment-service.dev/api";
 \PaymentService\Client::config($token, $endpoint);
 ```
 
-## Bank Resource
+<a name="usage"></a>
 
-### Select All
-
+<a name="banks_all"></a>
+### 口座情報取得
+全ての口座情報を取得出来ます。
 ```php
 \PaymentService\Bank::all();
 ```
-Result would be
+戻り値は以下通りです、複数のBankクラスを持ったCollectionオブジェクトになります。LaravelのCollectionクラスをカスタマイズして使っているのでいくつか便利なユティリティー関数をそのまま使えます。例えば`get`, `count`, `where`, `keys`, `pluck`など。。。
 ```php
 Collection {#186 ▼
   #items: array:15 [▼
@@ -64,10 +82,6 @@ Collection {#186 ▼
     8 => Bank {#168 ▶}
     9 => Bank {#169 ▶}
     10 => Bank {#178 ▶}
-    11 => Bank {#177 ▶}
-    12 => Bank {#176 ▶}
-    13 => Bank {#175 ▶}
-    14 => Bank {#191 ▶}
   ]
 }
 ```
@@ -108,8 +122,8 @@ Bank {#169 ▼
   ]
 }
 ```
-
-### Create new resource
+<a name="banks_create"></a>
+### 口座情報登録
 
 ```php
 \PaymentService\Bank::create([
