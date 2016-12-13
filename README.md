@@ -2,15 +2,11 @@
 - [Introduction](#introduction)
   - [Installation](#installation)
   - [Configuration](#configuration)
+    - [クライアント認証](#authentication)
 - [Usage](#usage)
+  [エラーハンドリング](#error_handling)
 - [口座情報取得](#banks_all)
 - [口座情報登録](#banks_create)
-- [口座情報変更](#banks_update)
-- [口座情報削除](#banks_delete)
-- [口座情報更新履歴](#banks_history)
-- [出金依頼](#withdrawals_create)
-- [出金依頼ステータス変更](#withdrawals_update)
-- [振込データ取得](#withdrawals_all)
 
 <a name="introduction"></a>
 ## Introduction
@@ -29,7 +25,8 @@ composer require uluru/payment-service-php-client
 ```php
 include 'vendor/autoload.php';
 ```
-### Configure the API credentials
+<a name="authentication"></a>
+## クライアント認証
 ```php
 $token = "your-api-token";
 $endpoint = "http://payment-service.dev/api";
@@ -37,9 +34,19 @@ $endpoint = "http://payment-service.dev/api";
 ```
 
 <a name="usage"></a>
+<a name="error_handling"></a>
+## エラーハンドリング
+このライブラリのほとんどすべての関数は、特定の種類の例外を発生する可能性があります。予期しない実行を回避するために、`try-catch`ブロック内にコードを書いたほうが良いでしょう！
+```php
+try {
+    \PaymentService\Bank::all();
+} catch (\Exception $ex) {
+    var_dump($ex);
+}
+```
 
 <a name="banks_all"></a>
-### 口座情報取得
+## 口座情報取得
 全ての口座情報を取得出来ます。
 ```php
 \PaymentService\Bank::all();
@@ -77,54 +84,49 @@ Collection {#186 ▼
     3 => Bank {#174 ▶}
     4 => Bank {#173 ▶}
     5 => Bank {#172 ▶}
-    6 => Bank {#170 ▶}
-    7 => Bank {#171 ▶}
-    8 => Bank {#168 ▶}
-    9 => Bank {#169 ▶}
-    10 => Bank {#178 ▶}
   ]
 }
 ```
-
-### Select single resource
-
+## インスタンス型リソースを取得
+コレクションでレコードを取得する代わりに、APIから単一のリソースを取得することもできます。これにより、Bankクラスの`get`メソッドにIDを指定して呼び出します。 例えば,
 ```php
 \PaymentService\Bank::get(2);
 ```
-
-Result would be
-
+the above method will return the following result
 ```php
 Bank {#169 ▼
   #fillable: array:9 [▶]
-  #queryParams: array:1 [▼
-    0 => "user_id"
-  ]
+  #queryParams: array:2 [▶]
+  #hasHistory: true
   #primaryKey: "id"
   #keyType: "int"
   #attributes: array:15 [▶]
   #original: array:15 [▼
+    "id" => "61"
     "client_id" => 1
-    "user_id" => 137144
-    "bank_code" => "123"
-    "bank_name" => "OuDYHq4U78gjRyjq"
-    "branch_name" => "W9g1HRzLs13GPDoJ"
-    "branch_code" => "456"
+    "user_id" => 790917
+    "bank_code" => 4466
+    "bank_name" => "QhZ64e9gMiHvOiGf"
+    "branch_name" => "EmcwfO7uofWzdm3j"
+    "branch_code" => 763
     "account_type" => 1
-    "account_no" => "7130959"
-    "account_name" => "m294WemSNcALS2je"
+    "account_no" => 1343936
+    "account_name" => "RuhEpWvZzXHkVDCP"
     "bank_type" => 1
     "japanpost_code_no" => null
     "japanpost_account_no" => null
-    "created" => "2016-11-17 13:53:00"
-    "modified" => "2016-11-17 13:53:00"
-    "id" => "10"
+    "created" => "2016-12-13 16:00:13"
+    "modified" => "2016-12-13 16:00:13"
   ]
+  #includeParams: []
+  -exists: true
+  #parentResourceName: null
+  #relationships: []
 }
 ```
 <a name="banks_create"></a>
-### 口座情報登録
-
+## 口座情報登録
+新しい銀行口座を登録するには、必要なパラメータを用意し、Bankクラスの`create`メソッドを呼び出します。
 ```php
 \PaymentService\Bank::create([
     'user_id' => 1234,
@@ -138,32 +140,35 @@ Bank {#169 ▼
     'bank_type' => 1
 ]);
 ```
-
-Result would be
-
+リクエストが成功した場合は、次の結果が得られます。 それ以外の場合は、対応する例外がAPIレスポンスに基づいて発生されます。
 ```php
-Bank {#168 ▼
+Bank {#169 ▼
   #fillable: array:9 [▶]
-  #queryParams: array:1 [▶]
+  #queryParams: array:2 [▶]
+  #hasHistory: true
   #primaryKey: "id"
   #keyType: "int"
   #attributes: array:15 [▶]
   #original: array:15 [▼
+    "id" => "62"
     "client_id" => 1
-    "user_id" => 35180
-    "bank_code" => "123"
-    "bank_name" => "9zEbVD1hjcYabBVd"
-    "branch_name" => "WEdhk3LenIYVIVox"
-    "branch_code" => "456"
+    "user_id" => 1234
+    "bank_code" => "銀行コード"
+    "bank_name" => "銀行名"
+    "branch_name" => "支店名"
+    "branch_code" => "支店コード"
     "account_type" => 1
-    "account_no" => 1804819
-    "account_name" => "NCsfEVdRzh07fsq5"
+    "account_no" => 7654321
+    "account_name" => "アカウントメイ"
     "bank_type" => 1
     "japanpost_code_no" => null
     "japanpost_account_no" => null
-    "created" => "2016-11-17 19:59:59"
-    "modified" => "2016-11-17 19:59:59"
-    "id" => "24"
+    "created" => "2016-12-13 16:03:15"
+    "modified" => "2016-12-13 16:03:15"
   ]
+  #includeParams: []
+  -exists: true
+  #parentResourceName: null
+  #relationships: []
 }
 ```
