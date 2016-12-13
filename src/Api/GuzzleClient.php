@@ -49,18 +49,39 @@ class GuzzleClient implements ClientInterface
                     'body' => json_encode($params)
                 ]
             );
-        } catch (\GuzzleHttp\Exception\ClientException $ex) {
-            $this->handleGuzzleError($absUrl, $ex->getMessage());
-        } catch (\GuzzleHttp\Exception\TransferException $ex) {
-            $this->handleGuzzleError($absUrl, $ex->getMessage());
+        } catch (\GuzzleHttp\Exception\GuzzleException $exp) {
+            $this->handleGuzzleError($absUrl, $params, $exp);
         }
+
         return array($response->getBody(), $response->getStatusCode(), $response->getHeaders());
     }
 
-    private function handleGuzzleError($url, $message)
+    private function handleGuzzleError($url, $param, $exception)
     {
-        $msg = "Unexpected error communicating with Payment Service . \n\n $url";
-        $msg .= "\n\n(Network error : $message)";
-        throw new \Exception($msg);
+        $resp = $exception->getResponse();
+        $rheaders = $exception->getResponse()->getHeaders();
+        $rcode = $exception->getResponse()->getStatusCode();
+        $msg = $exception->getMessage();
+        $rbody = [];
+        if ($resp->getBody()) {
+            $rbody = json_decode($resp->getBody()->getContents(), true);
+        }
+        switch ($rcode) {
+            case 404:
+                // Customize the error message here.
+                throw new \PaymentService\Error\InvalidRequest($rcode, $msg, $param);
+            case 401:
+                throw new \PaymentService\Error\Authentication($rcode, $msg, $param);
+            case 402:
+                throw new \PaymentService\Error\Card($rcode, $msg, $param);
+            case 403:
+                throw new \PaymentService\Error\Permission($rcode, $msg, $param);
+            case 429:
+                throw new \PaymentService\Error\RateLimit($rcode, $msg, $param);
+            case 422:
+                throw new \PaymentService\Error\InvalidInput($rcode, $msg, $param, $rbody);
+            default:
+                throw new \PaymentService\Error\Api($rcode, $msg, $param);
+        }
     }
 }

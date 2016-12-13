@@ -24,7 +24,6 @@ class Request
         }
         list($rbody, $rcode, $rheaders) =
         $this->requestRaw($method, $url, $params, $headers);
-
         $resp = json_decode($rbody, true);
         $json = $this->interpretResponse($rbody, $rcode, $rheaders);
         $resp = new Response($rbody, $rcode, $rheaders, $json);
@@ -64,9 +63,6 @@ class Request
 
     private function interpretResponse($rbody, $rcode, $rheaders)
     {
-        if ($rcode < 200 || $rcode >= 300) {
-            $this->handleApiError($rbody, $rcode, $rheaders);
-        }
         try {
             $resp = json_decode($rbody, true);
             if ($rcode == 204) {
@@ -94,11 +90,5 @@ class Request
             self::$httpClient = GuzzleClient::instance();
         }
         return self::$httpClient;
-    }
-
-    private function handleApiError($rbody, $rcode, $rheaders)
-    {
-        throw new \Exception("Error Processing API Request", $rcode);
-
     }
 }
