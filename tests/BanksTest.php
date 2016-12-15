@@ -94,10 +94,10 @@ class BanksTest extends TestCase
         $id = 6;
         $this->mockRequest('GET', '/banks/' . $id, [], $this->instanceResource($id));
         $this->mockRequest('DELETE', '/banks/' . $id, [], [], 204);
-        $this->mockRequest('GET', '/banks/' . $id, [], [], 404);
+        $this->mockRequestWithException('GET', '/banks/' . $id, [], [], 404);
         $bank = Bank::get($id);
         $bank->delete();
-        $this->expectException(Exception::class);
+        $this->expectException(\Exception::class);
         $deletedBank = Bank::get($id);
     }
 

@@ -5,12 +5,15 @@
 - [Available Resources](docs/)
     - [Bank](docs/Bank.md)
     - [Withdrawal](docs/Withdrawal.md)
-- [Credits](#credits)
+- [References](#references)
 
 
 <a name="introduction"></a>
 ## Introduction
 This client package is developed to consume the payment service api, and this makes the process so easy. The basic idea behind the package is hiding the network access layer from the application layer. Developer no need to consider what is the endpoint and what is the HTTP method to access it, etc.,
+
+As of [JSON API standards](http://jsonapi.org/format/#fetching-resources) `GET /banks/1 HTTP/1.1` will gives an individual resource object of type `bank`. Getting the resource and simply converted into an object of type `Bank` which will provide further functionality for the resource received from the API server.
+
 
 <a name="installation"></a>
 ## Installation
@@ -96,6 +99,6 @@ Bank::create([
 ```
 Done!
 
-## Credits
+## References
   - [Laravel](http://www.laravel.com)
   - [Stripe](https://stripe.com/docs)

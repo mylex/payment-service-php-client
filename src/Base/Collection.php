@@ -63,58 +63,6 @@ class Collection implements ArrayAccess, Arrayable, Countable, IteratorAggregate
     }
 
     /**
-     * Get the average value of a given key.
-     *
-     * @param  callable|string|null  $callback
-     * @return mixed
-     */
-    public function avg($callback = null)
-    {
-        if ($count = $this->count()) {
-            return $this->sum($callback) / $count;
-        }
-    }
-
-    /**
-     * Alias for the "avg" method.
-     *
-     * @param  callable|string|null  $callback
-     * @return mixed
-     */
-    public function average($callback = null)
-    {
-        return $this->avg($callback);
-    }
-
-    /**
-     * Get the median of a given key.
-     *
-     * @param  null $key
-     * @return mixed|null
-     */
-    public function median($key = null)
-    {
-        $count = $this->count();
-
-        if ($count == 0) {
-            return;
-        }
-
-        $values = with(isset($key) ? $this->pluck($key) : $this)
-                    ->sort()->values();
-
-        $middle = (int) ($count / 2);
-
-        if ($count % 2) {
-            return $values->get($middle);
-        }
-
-        return (new static([
-            $values->get($middle - 1), $values->get($middle),
-        ]))->average();
-    }
-
-    /**
      * Get the mode of a given key.
      *
      * @param  null $key

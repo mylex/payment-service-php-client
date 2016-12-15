@@ -9,12 +9,6 @@ This class is responsible for all the requests regarding to Bank.
 | [save](#save) | Save the current instance state |
 | [delete](#delete) | Deletes the bank record associated with the instance |
 
-```php
-static Bank create(array $params)
-static Collection all([array $conditions])
-public Bank save()
-public boolean delete()
-```
 <a name="create"></a>
 ## create
 ### Description
@@ -45,7 +39,7 @@ static Bank create(array $params)
 
 #### Input
 ```php
-\PaymentService\Bank::create([
+Bank::create([
     'user_id' => 1234,
     'bank_name' => '銀行名',
     'bank_code' => '銀行コード',
@@ -229,7 +223,7 @@ $bank->save();
 To delete a resource, call `delete()` method of the `Bank`'s object.
 ### method syntax
 ```php
-public Bank delete()
+public boolean delete()
 ```
 ### Parameters
 It does not accept any parameters.

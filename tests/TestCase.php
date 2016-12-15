@@ -24,6 +24,15 @@ abstract class TestCase extends \PHPUnit_Framework_TestCase
              ->willReturn([json_encode($return), $rcode, []]);
     }
 
+    protected function mockRequestWithException($method, $path, $params = [], $return = [], $rcode = 200)
+    {
+        $mock = $this->setUpMockRequest();
+        $mock->expects($this->at($this->call++))
+             ->method('request')
+             ->with(strtolower($method), $this->baseUrl . '/v1' . $path, $this->anything(), $params)
+             ->will($this->throwException(new Exception));
+    }
+
     private function setUpMockRequest()
     {
         if (!$this->mock) {

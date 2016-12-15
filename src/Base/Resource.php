@@ -45,7 +45,6 @@ abstract class Resource implements Arrayable, Jsonable, JsonSerializable
             }
 
             $newlist[] = $data;
-            // $data['relationships']
         }
         return static::hydrateRaw($newlist, $response);
     }
