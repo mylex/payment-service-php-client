@@ -16,6 +16,8 @@ class Bank extends Resource
         'account_no',
         'account_name',
         'bank_type',
+        'japanpost_code_no',
+        'japanpost_account_no'
     ];
 
     protected $queryParams = [
