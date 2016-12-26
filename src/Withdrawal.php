@@ -10,6 +10,9 @@ class Withdrawal extends Resource
         'bank_id',
         'amount',
         'pay_at',
+        'status',
+        'error_code',
+        'sent'
     ];
 
     protected $queryParams = [
